@@ -1,0 +1,33 @@
+Added 3d, 60 epoch
+[60] time 8.77 lr 0.000048 3d_train 23.296848 3d_eval 14.572815 3d_valid 36.103273
+
+
+Eval, Source
+Protocol #1   (MPJPE) action-wise average: 49.0 mm
+Protocol #2 (P-MPJPE) action-wise average: 37.9 mm
+Protocol #3 (N-MPJPE) action-wise average: 47.0 mm
+Velocity      (MPJVE) action-wise average: 3.25 mm
+
+Eval, Added wo Noise
+Protocol #1   (MPJPE) action-wise average: 35.1 mm
+Protocol #2 (P-MPJPE) action-wise average: 31.9 mm
+Protocol #3 (N-MPJPE) action-wise average: 35.1 mm
+Velocity      (MPJVE) action-wise average: 2.44 mm
+
+Eval, Noise 0,0.1
+Protocol #1   (MPJPE) action-wise average: 39.7 mm
+Protocol #2 (P-MPJPE) action-wise average: 33.7 mm
+Protocol #3 (N-MPJPE) action-wise average: 38.7 mm
+Velocity      (MPJVE) action-wise average: 3.98 mm
+
+Eval, Causal
+Protocol #1   (MPJPE) action-wise average: 49.5 mm
+Protocol #2 (P-MPJPE) action-wise average: 38.5 mm
+Protocol #3 (N-MPJPE) action-wise average: 47.7 mm
+Velocity      (MPJVE) action-wise average: 5.52 mm
+
+Eval, Noise 0,0.1, Causal
+Protocol #1   (MPJPE) action-wise average: 41.8 mm
+Protocol #2 (P-MPJPE) action-wise average: 34.8 mm
+Protocol #3 (N-MPJPE) action-wise average: 40.7 mm
+Velocity      (MPJVE) action-wise average: 6.3 mm

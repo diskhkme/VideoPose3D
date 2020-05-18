@@ -1,4 +1,4 @@
 common/
-checkpoint/
+checkpoint/*
 .idea/
 data/
