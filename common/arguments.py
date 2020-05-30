@@ -10,6 +10,8 @@ import argparse
 def parse_args():
     parser = argparse.ArgumentParser(description='Training script')
 
+    parser.add_argument('--add3d', type=bool)
+
     # General arguments
     parser.add_argument('-d', '--dataset', default='h36m', type=str, metavar='NAME', help='target dataset') # h36m or humaneva
     parser.add_argument('-k', '--keypoints', default='cpn_ft_h36m_dbb', type=str, metavar='NAME', help='2D detections to use')

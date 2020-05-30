@@ -32,9 +32,15 @@ import time
 args = parse_args()
 print(args)
 
-model_pos = TemporalModel(17, 5, 17,
+if args.add3d == True:
+    perJointDataDim = 5
+else:
+    perJointDataDim = 2
+
+model_pos = TemporalModel(17, perJointDataDim, 17,
                           filter_widths=[3,3,3], causal=args.causal, dropout=args.dropout, channels=args.channels,
                           dense=args.dense)
+
 
 receptive_field = model_pos.receptive_field()
 print('INFO: Receptive field: {} frames'.format(receptive_field))
@@ -91,7 +97,9 @@ print(f"Waiting Connection...")
 client_socket, addr = s.accept()
 print(f"Connection from {addr} has been established!")
 
-databuffer = np.zeros((1,27,17,5)) # 27개 frame, 17개 관절, 관절당 5개 data (2개 2d joint + 3개 3d position(머리와 손만)
+# 27개 frame, 17개 관절, 관절당 5개 data (2개 2d joint + 3개 3d position(머리와 손만)
+# add3D가 아닌경우, 관절당 2개
+databuffer = np.zeros((1,27,17,perJointDataDim))
 databufferLastFrame = 0
 stackedDataCount = 0
 
@@ -132,16 +140,19 @@ def recv(client_socket, addr):
 
                 print(f"frameIndex {currentFrame}, recvd") # TODO : Data 가시화?
 
-                if stackedDataCount == 0:
-                    databuffer[0,stackedDataCount,:,:] = np.concatenate((joint2DData,joint3DData),axis=1)
-                    stackedDataCount = stackedDataCount+1
-                elif stackedDataCount < 27:
-                    databuffer[0,stackedDataCount,:,:] = np.concatenate((joint2DData,joint3DData),axis=1)
+                if stackedDataCount < 27:
+                    if perJointDataDim == 5:
+                        databuffer[0,stackedDataCount,:,:] = np.concatenate((joint2DData,joint3DData),axis=1)
+                    else:
+                        databuffer[0, stackedDataCount, :, :] = joint2DData
                     stackedDataCount = stackedDataCount+1
                 else:
                     databufferLastFrame = currentFrame
                     np.roll(databuffer,1,axis=1)
-                    databuffer[0,stackedDataCount-1,:,:] = np.concatenate((joint2DData,joint3DData),axis=1)
+                    if perJointDataDim == 5:
+                        databuffer[0,stackedDataCount-1,:,:] = np.concatenate((joint2DData,joint3DData),axis=1)
+                    else:
+                        databuffer[0, stackedDataCount, :, :] = joint2DData
 
                 new_msg = True
                 full_msg = b""
