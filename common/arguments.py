@@ -10,7 +10,8 @@ import argparse
 def parse_args():
     parser = argparse.ArgumentParser(description='Training script')
 
-    parser.add_argument('--add3d', type=bool)
+    parser.add_argument('--add3d', action='store_true')
+    parser.add_argument('--debug-plot', action='store_true')
 
     # General arguments
     parser.add_argument('-d', '--dataset', default='h36m', type=str, metavar='NAME', help='target dataset') # h36m or humaneva
