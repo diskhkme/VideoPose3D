@@ -117,7 +117,7 @@ def recv(client_socket, addr):
         new_msg = True
 
         while True:
-            msg = client_socket.recv(16)
+            msg = client_socket.recv(4)
             if new_msg:
                 msglen = struct.unpack('i', msg[:HEADERSIZE])
                 msglen = msglen[0]
@@ -125,7 +125,7 @@ def recv(client_socket, addr):
 
             full_msg += msg
 
-            if len(full_msg) - HEADERSIZE == msglen:
+            if len(full_msg) == msglen:
                 # d = pickle.loads(full_msg[HEADERSIZE:])
                 b = struct.unpack('i 2I 36f 75f', full_msg[HEADERSIZE:])
 
@@ -136,7 +136,7 @@ def recv(client_socket, addr):
                 joint3DData[13, :] = Matrices[1, 3, :]  # Index 수정, 여기서는 1이 Left hand라 가정
                 joint3DData[16, :] = Matrices[2, 3, :]  # Index 수정, 여기서는 2이 Right hand라 가정
 
-                joint2DData = np.reshape(np.array(b[3 + 36:3 + 36 + 75]), (24, 3)) # TODO : joint2DData[0,:]이, (nose x좌표, nose y좌표, nose score) 가 들어있는 벡터여야 함. 순서가 안맞다면 np array를 transpose해야 함
+                joint2DData = np.reshape(np.array(b[3 + 36:3 + 36 + 75]), (25, 3)) # TODO : joint2DData[0,:]이, (nose x좌표, nose y좌표, nose score) 가 들어있는 벡터여야 함. 순서가 안맞다면 np array를 transpose해야 함
 
 
                 # "Hip", "RHip", "RKnee", "RFoot", "LHip", "LKnee", "LFoot"
