@@ -110,6 +110,13 @@ def recv(client_socket, addr):
     global databufferLastFrame
     global stackedDataCount
 
+    if args.dump_raw == True:
+        f_raw = open("raw_2d_input.txt", 'w')
+
+    if args.dump_selective == True:
+        f_selective = open("raw_2d_selective.txt", 'w')
+
+
     HEADERSIZE = 4
     joint3DData = np.zeros((17,3))
     try:
@@ -176,23 +183,44 @@ def recv(client_socket, addr):
                 child_to_parant_dict = {1: 0, 2: 1, 3: 2, 4: 0, 5: 4, 6: 5, 7: 0, 8: 7, 9: 8, 10: 9,
                                         11: 8, 12: 11, 13: 12, 14: 8, 15: 14, 16: 15}
 
+                # 전체 data dump
+                if args.dump_raw == True:
+                    raw_str = ""
+                    for i in range(17):
+                        raw_str = raw_str + "{},{}\n".format(joint2DData[i][0],joint2DData[i][1])
+
+                    raw_str = raw_str + "\n"
+                    f_raw.write(raw_str)
+
+                # selective data dump
+                if args.dump_selective == True:
+                    selective_str = "Frame : {}\n".format(currentFrame)
+                    selective_str = selective_str + "Hip : {},{}\n".format(joint2DData[0][0],joint2DData[0][1])
+                    selective_str = selective_str + "Head : {},{}\n".format(joint2DData[10][0], joint2DData[10][1])
+                    selective_str = selective_str + "RFoot : {},{}\n".format(joint2DData[3][0], joint2DData[3][1])
+                    selective_str = selective_str + "LFoot : {},{}\n".format(joint2DData[6][0], joint2DData[6][1])
+                    selective_str = selective_str + "LWrist : {},{}\n".format(joint2DData[13][0], joint2DData[13][1])
+                    selective_str = selective_str + "RWrist : {},{}\n".format(joint2DData[16][0], joint2DData[16][1])
+                    f_selective.write(selective_str)
+
 
                 print(f"frameIndex {currentFrame}, recvd")
 
-                if args.debug_plot == True:
-                    plt.cla()
-                    plt.axis([0, int(b[1]), 0, int(b[2])])
-                    plt.gca().invert_yaxis()
-                    # plt.scatter(joint2DData[:,0], joint2DData[:,1])
-                    for i in range(17):
-                        if i != 0:
-                            parent_index = child_to_parant_dict[i]
-                            plt.plot((joint2DData[i, 0], joint2DData[parent_index, 0]),
-                                     (joint2DData[i, 1], joint2DData[parent_index, 1]))
-
-                        plt.text(joint2DData[i, 0], joint2DData[i, 1], H36M_NAMES[i], fontsize=10)
-                    plt.text(0, 0, "Frame : {}".format(currentFrame), fontsize=20)
-                    plt.pause(.00001)
+                # TODO:프레임 드랍 문제로 가시화는 일단 보류
+                # if args.debug_plot == True:
+                    # plt.cla()
+                    # plt.axis([0, int(b[1]), 0, int(b[2])])
+                    # plt.gca().invert_yaxis()
+                    # # plt.scatter(joint2DData[:,0], joint2DData[:,1])
+                    # for i in range(17):
+                    #     if i != 0:
+                    #         parent_index = child_to_parant_dict[i]
+                    #         plt.plot((joint2DData[i, 0], joint2DData[parent_index, 0]),
+                    #                  (joint2DData[i, 1], joint2DData[parent_index, 1]))
+                    # 
+                    #     plt.text(joint2DData[i, 0], joint2DData[i, 1], H36M_NAMES[i], fontsize=10)
+                    # plt.text(0, 0, "Frame : {}".format(currentFrame), fontsize=20)
+                    # plt.pause(.00001)
 
                 if stackedDataCount < 27:
                     if perJointDataDim == 5:
@@ -237,7 +265,7 @@ def send(client_socket,addr):
                 predicted_data = np.reshape(predicted_data,(51,1))
 
                 d = struct.pack('i 51f', databufferLastFrameCopy, *predicted_data)
-                length = len(d)
+                length = len(d) + 4 # 동옥씨 쪽에서, length까지 더해서 size를 계산하고 있으므로 4바이트 더함
                 msg = bytearray(struct.pack('2i 51f', length, databufferLastFrameCopy, *predicted_data))
                 client_socket.send(msg)
 
@@ -256,7 +284,6 @@ thRecv = threading.Thread(target=recv, args=(client_socket, addr))
 thSend = threading.Thread(target=send, args=(client_socket, addr))
 thRecv.start()
 thSend.start()
-
 
 while True:
     time.sleep(1)

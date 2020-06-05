@@ -13,7 +13,7 @@ def recv(client_socket):
         new_msg = True
 
         while True:
-            msg = client_socket.recv(16)
+            msg = client_socket.recv(4)
             if new_msg:
                 msglen = struct.unpack('i', msg[:HEADERSIZE])
                 msglen = msglen[0]
@@ -22,7 +22,7 @@ def recv(client_socket):
 
             full_msg += msg
 
-            if len(full_msg) - HEADERSIZE == msglen:
+            if len(full_msg) == msglen:
                 print("full msg recvd")
                 print(full_msg[HEADERSIZE:])
 

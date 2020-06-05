@@ -33,11 +33,11 @@ class ClientDatSimulation():
         joint2DData = np.reshape(joint2DData,(72,1))
         joint3DData = self.joint3D[frameIndex,0:36] #세 점(controller + HMD 가정)의 위치 정보 3x4 matrx 3개. 현재는 임의의 36개 data 보내도록 가정
 
-        d = struct.pack('i 2I 36f 72f', frameIndex, self.img_source_width, self.img_source_height,
-                    *joint3DData, *joint2DData)
-        length = len(d)
-        msg = bytearray(struct.pack('2i 2I 36f 72f', length, frameIndex, self.img_source_width, self.img_source_height,
-                                                *joint3DData, *joint2DData))
+        d = struct.pack('i 2I 36f 75f', frameIndex, self.img_source_width, self.img_source_height,
+                    *joint3DData, *joint2DData, 0, 0, 0)
+        length = len(d) + 4
+        msg = bytearray(struct.pack('2i 2I 36f 75f', length, frameIndex, self.img_source_width, self.img_source_height,
+                                                *joint3DData, *joint2DData, 0, 0, 0))
         return msg
 
 
