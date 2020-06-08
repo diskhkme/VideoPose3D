@@ -14,6 +14,7 @@ def parse_args():
     parser.add_argument('--debug-plot', action='store_true')
     parser.add_argument('--dump_raw', action='store_true')
     parser.add_argument('--dump_selective', action='store_true')
+    parser.add_argument('--dump_inference', action='store_true')
 
     # General arguments
     parser.add_argument('-d', '--dataset', default='h36m', type=str, metavar='NAME', help='target dataset') # h36m or humaneva

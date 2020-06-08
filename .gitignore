@@ -2,3 +2,4 @@ common/
 checkpoint/*
 .idea/
 data/
+*.txt

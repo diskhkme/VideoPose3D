@@ -104,18 +104,37 @@ databuffer = np.zeros((1,27,17,perJointDataDim))
 databufferLastFrame = 0
 stackedDataCount = 0
 
+H36M_NAMES = ['']*32
+H36M_NAMES[0] = 'Hip'  # 8
+H36M_NAMES[1] = 'RHip'  # 12
+H36M_NAMES[2] = 'RKnee'  # 13
+H36M_NAMES[3] = 'RFoot'  # 14
+H36M_NAMES[4] = 'LHip'  # 9
+H36M_NAMES[5] = 'LKnee'  # 10
+H36M_NAMES[6] = 'LFoot'  # 11
+H36M_NAMES[7] = 'Spine'  # ??
+H36M_NAMES[8] = 'Thorax'  # 1
+H36M_NAMES[9] = 'Neck/Nose'  # 0
+H36M_NAMES[10] = 'Head'  # ??
+H36M_NAMES[11] = 'LShoulder'  # 2
+H36M_NAMES[12] = 'LElbow'  # 3
+H36M_NAMES[13] = 'LWrist'  # 4
+H36M_NAMES[14] = 'RShoulder'  # 5
+H36M_NAMES[15] = 'RElbow'  # 6
+H36M_NAMES[16] = 'RWrist'  # 7
+
 # recv thread
 def recv(client_socket, addr):
     global databuffer
     global databufferLastFrame
     global stackedDataCount
+    global H36M_NAMES
 
     if args.dump_raw == True:
         f_raw = open("raw_2d_input.txt", 'w')
 
     if args.dump_selective == True:
         f_selective = open("raw_2d_selective.txt", 'w')
-
 
     HEADERSIZE = 4
     joint3DData = np.zeros((17,3))
@@ -143,42 +162,29 @@ def recv(client_socket, addr):
                 joint3DData[13, :] = Matrices[1, 3, :]  # Index 수정, 여기서는 1이 Left hand라 가정
                 joint3DData[16, :] = Matrices[2, 3, :]  # Index 수정, 여기서는 2이 Right hand라 가정
 
-                joint2DData = np.reshape(np.array(b[3 + 36:3 + 36 + 75]), (25, 3)) # TODO : joint2DData[0,:]이, (nose x좌표, nose y좌표, nose score) 가 들어있는 벡터여야 함. 순서가 안맞다면 np array를 transpose해야 함
-
+                joint2DData = np.reshape(np.array(b[3 + 36:3 + 36 + 75]), (25, 3))
+                joint2DData = joint2DData[:,:2] # score(prob)가 들어있는 세 번째 인자는 일단 사용 안함
 
                 # "Hip", "RHip", "RKnee", "RFoot", "LHip", "LKnee", "LFoot"
                 # "Spine", "Thorax", "Nose", "Head", "LShoulder", "LElbow", "LWrist",
                 # "RShoulder", "RElbow", "RWrist" 순으로 정렬된 데이터가 네트워크에 들어가야 함
 
-                H36M_NAMES = ['']*32
-                H36M_NAMES[0] = 'Hip'  # 8
-                H36M_NAMES[1] = 'RHip'  # 12
-                H36M_NAMES[2] = 'RKnee'  # 13
-                H36M_NAMES[3] = 'RFoot'  # 14
-                H36M_NAMES[4] = 'LHip'  # 9
-                H36M_NAMES[5] = 'LKnee'  # 10
-                H36M_NAMES[6] = 'LFoot'  # 11
-                H36M_NAMES[7] = 'Spine'  # ??
-                H36M_NAMES[8] = 'Thorax'  # 1
-                H36M_NAMES[9] = 'Neck/Nose'  # 0
-                H36M_NAMES[10] = 'Head'  # ??
-                H36M_NAMES[11] = 'LShoulder'  # 2
-                H36M_NAMES[12] = 'LElbow'  # 3
-                H36M_NAMES[13] = 'LWrist'  # 4
-                H36M_NAMES[14] = 'RShoulder'  # 5
-                H36M_NAMES[15] = 'RElbow'  # 6
-                H36M_NAMES[16] = 'RWrist'  # 7
+                #-----------------VideoPose to Videopose Mapping(테스트 용)-------------------------------------------
+                joint2DData = joint2DData[:17, :2] # 17 이후 데이터는 더미.
 
-                set1 = (8,12,13,14,9,10,11,23,1,0,23,2,3,4,5,6,7) # OpenPose 정의를 참고하여 위 순서로 정렬하기 위한 맵핑 1 (23 index인 mapping spine의 경우, 1:1 맵핑이 없어서 임의로 23넣어두고, 아래에서 계산)
-                set2 = (8,9,10,11,12,13,14,23,1,0,23,5,6,7,2,3,4) # OpenPose 정의를 참고하여 위 순서로 정렬하기 위한 맵핑 2 (23 index인 mapping spine의 경우, 1:1 맵핑이 없어서 임의로 23넣어두고, 아래에서 계산)
+                #-----------------Openpose to Videopose 2D Mapping-----------------------------------------
+                # set1 = (8,12,13,14,9,10,11,23,1,0,23,2,3,4,5,6,7) # OpenPose 정의를 참고하여 위 순서로 정렬하기 위한 맵핑 1 (23 index인 mapping spine의 경우, 1:1 맵핑이 없어서 임의로 23넣어두고, 아래에서 계산)
+                # set2 = (8,9,10,11,12,13,14,23,1,0,23,5,6,7,2,3,4) # OpenPose 정의를 참고하여 위 순서로 정렬하기 위한 맵핑 2 (23 index인 mapping spine의 경우, 1:1 맵핑이 없어서 임의로 23넣어두고, 아래에서 계산)
+                #
+                # joint2DData = joint2DData[set1] # TODO : Set 1/Set 2 둘다 테스트 필요
+                #
+                # # Spine과 Head의 경우 애매함. 일단 적당히 계산하여 넣음
+                # joint2DData[7][0] = (joint2DData[0][0] + joint2DData[8][0]) / 2 # spine x
+                # joint2DData[7][1] = (joint2DData[0][1] + joint2DData[8][1]) / 2 # spine y
+                # joint2DData[10][0] = ((joint2DData[9][0] - joint2DData[8][0]) / 2) + (joint2DData[9][0]) # head x
+                # joint2DData[10][1] = ((joint2DData[9][1] - joint2DData[8][1]) / 2) + (joint2DData[9][1])  # head y
+                # ----------------------------------------------------------------------------------------
 
-                joint2DData = joint2DData[set1,:2] # TODO : Set 1/Set 2 둘다 테스트 필요
-
-                # Spine과 Head의 경우 애매함. 일단 적당히 계산하여 넣음
-                joint2DData[7][0] = (joint2DData[0][0] + joint2DData[8][0]) / 2 # spine x
-                joint2DData[7][1] = (joint2DData[0][1] + joint2DData[8][1]) / 2 # spine y
-                joint2DData[10][0] = ((joint2DData[9][0] - joint2DData[8][0]) / 2) + (joint2DData[9][0]) # head x
-                joint2DData[10][1] = ((joint2DData[9][1] - joint2DData[8][1]) / 2) + (joint2DData[9][1])  # head y
 
                 child_to_parant_dict = {1: 0, 2: 1, 3: 2, 4: 0, 5: 4, 6: 5, 7: 0, 8: 7, 9: 8, 10: 9,
                                         11: 8, 12: 11, 13: 12, 14: 8, 15: 14, 16: 15}
@@ -246,8 +252,14 @@ def recv(client_socket, addr):
 
 # send thread
 def send(client_socket,addr):
+    global H36M_NAMES
+
     startInference = False
     lastDatabufferLastFrame = 0
+
+
+    if args.dump_inference == True:
+        f_inference = open("3d_inference.txt", 'w')
 
     try:
         while True:
@@ -263,6 +275,12 @@ def send(client_socket,addr):
                 predicted_data = evaluate(databufferCopy)
                 predicted_data = predicted_data[0, :, :]
                 predicted_data = np.reshape(predicted_data,(51,1))
+
+                if args.dump_inference == True:
+                    raw_str = "Frame : {}\n".format(databufferLastFrameCopy)
+                    for i in range(17):
+                        raw_str = raw_str + "{} : {},{},{}\n".format(H36M_NAMES[i], predicted_data[3*i][0],predicted_data[3*i+1][0],predicted_data[3*i+2][0])
+                    f_inference.write(raw_str)
 
                 d = struct.pack('i 51f', databufferLastFrameCopy, *predicted_data)
                 length = len(d) + 4 # 동옥씨 쪽에서, length까지 더해서 size를 계산하고 있으므로 4바이트 더함

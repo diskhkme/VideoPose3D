@@ -3,7 +3,7 @@ import pickle
 import time
 import struct
 
-from ClientDataSimulation import ClientDatSimulation
+from ClientDataSimulation import ClientDatSimulation_H36M
 
 def recv(client_socket):
     HEADERSIZE = 4
@@ -46,7 +46,7 @@ def recv(client_socket):
 
 
 def send(client_socket):
-    sim = ClientDatSimulation()
+    sim = ClientDatSimulation_H36M()
     frameIndex = 0
 
     try:
